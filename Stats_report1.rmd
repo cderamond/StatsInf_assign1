@@ -3,15 +3,17 @@ title: 'Report: assignment 1'
 author: "C. Deramond"
 date: "Sunday, December 07, 2014"
 output:
+  html_document: default
   pdf_document:
     fig_caption: yes
+  word_document: default
 ---
 
 This document contains the report for assigment 1. 
 
 ## Problem:
 
-The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also also 1/lambda. Set lambda = 0.2 for all of the simulations. In this simulation, you will investigate the distribution of averages of 40 exponential(0.2)s. Note that you will need to do a thousand or so simulated averages of 40 exponentials.
+The exponential distribution can be simulated in R with rexp(n, $\lambda$) where $\lambda$ is the rate parameter. The mean of exponential distribution is *$\mu=1/\lambda$* and the standard deviation is also $\sigma=1/\lambda$. Set *$\lambda=0.2$* for all of the simulations. In this simulation, you will investigate the distribution of averages of 40 exponential(0.2)s. Note that you will need to do a thousand or so simulated averages of 40 exponentials.
 
 Illustrate via simulation and associated explanatory text the properties of the distribution of the mean of 40 exponential(0.2)s.  You should:
 
@@ -22,13 +24,93 @@ Illustrate via simulation and associated explanatory text the properties of the 
 3. Show that the distribution is approximately normal.
 
 ## Processing
+First we load required packages and set the parameters for $\lambda$, theoretical values and n. Starting with 1000 simulations
+
+```{r, results='hide'}
+library(ggplot2)
+l <- 0.2
+theo_mean <- 1/l
+theo_sd <- 1/l
+theo_var <- 1/l^2
+n <- 40
+nosim <- 1000
+```
+
+Remark on Theoretical mean with value *`r theo_mean`*.
+
+Now, let's review CLT for exponential distribution:
+
+- Standard error of the mean is $SE=\sigma/\sqrt{n}=1/(\sqrt{n}*\lambda)$ 
+
+- Then $$\frac{\bar X - \lambda^{-1}}{SE} $$ will be approximately normally distributed.
+
+Having set the parameters, we'll generate the simulations:
+
+```{r, cache=TRUE}
+zConvert <- function(x, n) l * sqrt(n) * (mean(x) - theo_mean) 
+data <- matrix(rexp(n*nosim, l), nosim) #40 samples of 1000 iid exponential 
+xbar <- data.frame(xmeans = rowMeans(data)) # 1000 xbar (means of 40 observations)
+xbar <- cbind(xbar, Zx = sapply(xbar$xmeans, zConvert, n)) #normalization
+
+```
 
 
 ## Results
 
-1. Show where the distribution is centered at and compare it to the theoretical center of the distribution.
+### 1. Show where the distribution is centered at and compare it to the theoretical center of the distribution.
 
-2. Show how variable it is and compare it to the theoretical variance of the distribution.
+as the graph shows, it centers at the blue line, being the mean of $\bar X$, with a value of `r round(mean(xbar$xmeans), 3)` , very close to the theoretical  $\lambda^{-1}=$ `r theo_mean`
 
-3. Show that the distribution is approximately normal.
+```{r}
+g <- ggplot(xbar, aes(x = xmeans)) + geom_histogram(binwidth=.3, colour = "black", aes(y = ..density..)) 
+g <- g + stat_function(fun = dnorm, col = "red", args = list(mean = theo_mean, sd = theo_sd/sqrt(n))) +
+        geom_vline(xintercept = mean(xbar$xmeans), col = "steelblue",alpha = .75, size = 1.2) +
+        geom_vline(xintercept = theo_mean, col = "red",alpha = .75, size = 1.2, linetype = "dashed") 
+g
+```
+
+
+
+
+
+
+### 2. Show how variable it is and compare it to the theoretical variance of the distribution.
+
+As defined variable $\bar X$ contains the means of `n=40` samples of 1000 simulations, therefore empirical mean, sd  vs theoretical goes:
+
+```{r, echo=FALSE}
+resume <- data.frame(Variables = c("Mean", "Std. Deviation", "Variance" ),
+                     Empirical = c(mean(xbar$xmeans), sd(xbar$xmeans), var(xbar$xmeans)),
+                     Theoretical = c(theo_mean, theo_sd/sqrt(n), theo_var/n)) 
+resume
+```
+
+### 3. Show that the distribution is approximately normal.
+
+for this case, let's simplify by normalizing $\bar X$, which was already done, but repeat the code: 
+
+```{r, eval=FALSE}
+zConvert <- function(x, n) l * sqrt(n) * (mean(x) - theo_mean)
+...
+xbar <- cbind(xbar, 
+              Zx = sapply(xbar$xmeans, zConvert, n)) #normalization
+```
+
+so the normalized $Z_x$, will look like:
+
+```{r, echo=FALSE}
+gz <- ggplot(xbar, aes(x = Zx)) + geom_histogram(binwidth=.3, colour = "black", aes(y = ..density..)) + 
+        labs(title = "Standardized X vs Standard normal", 
+             x = "Z values")
+
+gz <- gz + stat_function(fun = dnorm, col = "red") +
+        geom_vline(xintercept = mean(xbar$Zx), col = "steelblue",alpha = .75, size = 1.2) +
+        geom_vline(xintercept = 0, col = "red",alpha = .75, size = 1.2, linetype = "dashed") 
+gz
+
+```
+
+Which fits nicely with the normal distribution, having $Z_x$ centered at `r round(mean(xbar$Zx), 3)`.
+
+
 
