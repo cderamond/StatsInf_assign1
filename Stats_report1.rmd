@@ -3,9 +3,9 @@ title: 'Report: assignment 1'
 author: "C. Deramond"
 date: "Sunday, December 07, 2014"
 output:
-  html_document: default
   pdf_document:
     fig_caption: yes
+  html_document: default
   word_document: default
 ---
 

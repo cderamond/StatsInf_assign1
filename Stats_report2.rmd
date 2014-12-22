@@ -1,0 +1,62 @@
+---
+title: "Statistical Inference report 2"
+author: "C. Deramond"
+date: "Sunday, December 21, 2014"
+output: pdf_document
+---
+
+For this report we'll review results for analysis on the ToothGrowth dataset.
+
+
+## 1. Load the ToothGrowth data and perform some basic exploratory data analyses 
+
+```{r}
+library(datasets)
+library(reshape2)
+library(dplyr, warn.conflicts = F)
+library(ggplot2)
+data <- ToothGrowth
+```
+
+Initially let's see if there's any difference in dosage:
+
+```{r, echo=FALSE}
+qplot(dose, data = data, bin= .3, 
+      facets= .~supp, 
+      title = "Distribution per supplement of dosage")
+```
+
+as there is no noticeable difference in dosage, we move on to compare distributions of lenghts:
+
+```{r, echo=FALSE}
+qplot(len, data = data, geom = "density", col = supp, tittle = "Distribution per supplement of lenght") 
+```
+so it's not a bad hypothesis that there is significant difference between lenght gained in average between supplements
+
+## 2. Provide a basic summary of the data.
+
+We'll summarise the data for the whole dataset:
+
+```{r}
+data %>%
+        melt() %>%
+        group_by(variable) %>%
+        summarise(Mean = mean(value), SD = sd(value), Variance = var(value), n = n() ) %>%
+        print    
+```
+
+Analogous process, so to divide by the supplement:
+
+```{r, echo=FALSE}
+data %>%
+        melt() %>%
+        group_by(variable, supp ) %>%
+        summarise(Mean = mean(value), SD = sd(value), Variance = var(value), n = n() ) %>%
+        print  
+```
+
+
+## 3. Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches worth considering)
+
+
+## 4. State your conclusions and the assumptions needed for your conclusions. 
