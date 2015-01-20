@@ -1,7 +1,6 @@
 ---
 title: "Statistical Inference report 2"
 author: "C. Deramond"
-date: "Sunday, December 21, 2014"
 output: pdf_document
 ---
 
@@ -31,7 +30,7 @@ as there is no noticeable difference in dosage, we move on to compare distributi
 ```{r, echo=FALSE}
 qplot(len, data = data, geom = "density", col = supp, tittle = "Distribution per supplement of lenght") 
 ```
-so it's not a bad hypothesis that there is significant difference between lenght gained in average between supplements
+at first glance: it might not be a bad hypothesis that there is significant difference in average lenght gained between supplements.
 
 ## 2. Provide a basic summary of the data.
 
@@ -58,5 +57,22 @@ data %>%
 
 ## 3. Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches worth considering)
 
+As shown by the summary table, there's not much sense in comparing dosage among supplements, as they are exactly equal. What might be of interest is to review whether is there a difference among the lengths obtained by different supplements:
+
+* note the t-confidence interval for the lenght non discriminating by supplement: `r t.test(x=data$len)$conf.int`
+
+so, it's safe to assume there is no difference among supplements as the mean is contained in the interval.
+
+Digging deeper: we'll try the 2 sample non-paired t-test for $H_0$: $\mu_1=\mu_2$ under different variances:
+
+```{r}
+# for safety we assume different variances for non-paired t-test
+t.test(len ~ supp, paired = F, data = data, var.equal = F)
+```
+
+so we fail to reject null hypothesis.
 
 ## 4. State your conclusions and the assumptions needed for your conclusions. 
+
+* There's no significant difference in length gained between the 2 supplements.
+* Note that the only assumptions we are taking are the standard considerations for a Welch's test.
